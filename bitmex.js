@@ -2,6 +2,10 @@ const fetch = require('node-fetch');
 
 var fetchData = []
 
+function sleep(millis) {
+  return new Promise(resolve => setTimeout(resolve, millis));
+}
+
 function fetchBitMex(startTime) {
   var url = "https://www.bitmex.com/api/v1/trade?symbol=.BVOL&count=1000&columns=price"
   if (startTime) {
@@ -21,17 +25,22 @@ function fetchBitMex(startTime) {
       } else {
         fetchData = fetchData.concat(data)
       }
-      if (data.length == 0) {
+      if (data[data.length-1]["timestamp"] == startTime) {
         console.log(fetchData.length)
         console.log(JSON.stringify(fetchData))
       } else {
         fetchBitMex(data[data.length-1]["timestamp"])
       }
     } else {
-      console.log(data)
-      console.log(JSON.stringify(fetchData))
+      if (data["error"]) {
+        sleep(5000).then(() => {
+          fetchBitMex(startTime)
+        })
+      }
     }
   })
 }
 
-fetchBitMex("2020-03-25T12:00:00.000Z")
+//fetchBitMex("2020-05-13T12:00:00.000Z")
+
+fetchBitMex()
